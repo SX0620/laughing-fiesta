@@ -1,1 +1,279 @@
-1111111111
+#include <stdio.h>
+#include <stdlib.h>
+// 宏定义顺序表最大容量
+#define MAXSIZE 100
+// 定义顺序表结构体
+typedef struct {
+    int data[MAXSIZE];  // 存储整型元素的数组
+    int length;         // 顺序表当前的表长
+} SeqList;
+
+// 函数声明：a.类型定义和函数声明部分
+int InitSeqList(SeqList *L);                // 1.创建空的顺序表
+int InputData(SeqList *L);                  // 2.给顺序表输入数据
+int GetLength(SeqList L);                   // 3.求表长
+int GetElem(SeqList L, int i, int *e);      // 4.取第i个元素的值，存入e中
+int LocateElem(SeqList L, int x);           // 5.定位值为x的元素的位序，不存在返回-1
+int InsertElem(SeqList *L, int i, int x);   // 6.在第i个元素前插入值为x的元素
+int DeleteElem(SeqList *L, int i);          // 7.删除第i个元素
+void PrintSeqList(SeqList L);               // 8.输出顺序表所有元素
+void OddEvenMove(SeqList *L);               // 9.将奇数移到偶数前面（双指针法）
+int MergeSeqList(SeqList L1, SeqList L2, SeqList *L); // 10.合并两个非递减顺序表到L
+
+// 主函数：c.主函数实现各个函数功能调用
+int main() {
+    SeqList L, L1, L2, L_merge;
+    int choice, i, x, e, len, pos;
+    // 初始化空表
+    InitSeqList(&L);
+    InitSeqList(&L1);
+    InitSeqList(&L2);
+    InitSeqList(&L_merge);
+    // 菜单式界面
+    while (1) {
+        printf("\n===== 顺序表基本操作及应用菜单 =====\n");
+        printf("1. 创建空顺序表（已默认初始化）  2. 输入顺序表数据\n");
+        printf("3. 求顺序表长                    4. 按位取元素\n");
+        printf("5. 按值定位元素                  6. 按位插入元素\n");
+        printf("7. 按位删除元素                  8. 输出顺序表元素\n");
+        printf("9. 奇偶分离（奇数在前偶数在后）  10.合并两个非递减顺序表\n");
+        printf("0. 退出程序\n");
+        printf("====================================\n");
+        printf("请输入你的选择（0-10）：");
+        scanf("%d", &choice);
+        switch (choice) {
+            case 0:
+                printf("程序已退出！\n");
+                return 0;
+            case 2:
+                if (InputData(&L) == 0)
+                    printf("数据输入成功！\n");
+                break;
+            case 3:
+                len = GetLength(L);
+                printf("当前顺序表的表长为：%d\n", len);
+                break;
+            case 4:
+                printf("请输入要取的元素的位序：");
+                scanf("%d", &i);
+                if (GetElem(L, i, &e) == 0)
+                    printf("第%d个元素的值为：%d\n", i, e);
+                else
+                    printf("位序非法，取元素失败！\n");
+                break;
+            case 5:
+                printf("请输入要定位的元素值：");
+                scanf("%d", &x);
+                pos = LocateElem(L, x);
+                if (pos != -1)
+                    printf("值为%d的元素的位序为：%d\n", x, pos);
+                else
+                    printf("值为%d的元素不存在！\n", x);
+                break;
+            case 6:
+                printf("请输入插入的位序和元素值（以空格分隔）：");
+                scanf("%d %d", &i, &x);
+                if (InsertElem(&L, i, x) == 0)
+                    printf("在第%d位前插入%d成功！\n", i, x);
+                else
+                    printf("插入失败！\n");
+                break;
+            case 7:
+                printf("请输入要删除的元素的位序：");
+                scanf("%d", &i);
+                if (DeleteElem(&L, i) == 0)
+                    printf("删除第%d个元素成功！\n", i);
+                else
+                    printf("删除失败！\n");
+                break;
+            case 8:
+                printf("当前顺序表的元素为：");
+                PrintSeqList(L);
+                break;
+            case 9:
+                OddEvenMove(&L);
+                printf("奇偶分离后顺序表的元素为：");
+                PrintSeqList(L);
+                break;
+            case 10:
+                printf("请输入第一个非递减顺序表的元素：\n");
+                InputData(&L1);
+                printf("请输入第二个非递减顺序表的元素：\n");
+                InputData(&L2);
+                if (MergeSeqList(L1, L2, &L_merge) == 0) {
+                    printf("两个非递减顺序表合并后的结果为：");
+                    PrintSeqList(L_merge);
+                } else {
+                    printf("合并失败！\n");
+                }
+                // 合并后重新初始化，避免重复合并
+                InitSeqList(&L1);
+                InitSeqList(&L2);
+                InitSeqList(&L_merge);
+                break;
+            default:
+                printf("输入错误，请选择0-10的数字！\n");
+                break;
+        }
+    }
+    return 0;
+}
+
+// 函数实现：b.编写函数实现顺序表的相关功能
+// 1.创建空的顺序表
+int InitSeqList(SeqList *L) {
+    L->length = 0;  // 表长置0即为空表
+    for (int i = 0; i < MAXSIZE; i++) {
+        L->data[i] = 0;  // 数组初始化为0
+    }
+    return 0;
+}
+
+// 2.给顺序表输入数据
+int InputData(SeqList *L) {
+    int n;
+    printf("请输入要输入的元素个数：");
+    scanf("%d", &n);
+    // 校验元素个数合法性
+    if (n < 0 || n > MAXSIZE) {
+        printf("元素个数非法（0≤n≤%d）！\n", MAXSIZE);
+        return -1;
+    }
+    L->length = 0;  // 先清空原有数据
+    printf("请输入%d个整型元素（以空格分隔）：", n);
+    for (int i = 0; i < n; i++) {
+        scanf("%d", &L->data[i]);
+        L->length++;
+    }
+    return 0;
+}
+
+// 3.求表长
+int GetLength(SeqList L) {
+    return L.length;
+}
+
+// 4.取第i个元素的值，存入e中
+int GetElem(SeqList L, int i, int *e) {
+    // 位序合法范围：1≤i≤L.length
+    if (i < 1 || i > L.length) {
+        return -1;
+    }
+    *e = L.data[i - 1];  // 数组下标从0开始，位序从1开始
+    return 0;
+}
+
+// 5.定位值为x的元素的位序，不存在返回-1
+int LocateElem(SeqList L, int x) {
+    for (int i = 0; i < L.length; i++) {
+        if (L.data[i] == x) {
+            return i + 1;  // 返回位序（+1）
+        }
+    }
+    return -1;  // 未找到
+}
+
+// 6.在第i个元素前插入值为x的元素
+int InsertElem(SeqList *L, int i, int x) {
+    // 校验位序合法性和表是否满
+    if (i < 1 || i > L->length + 1) {
+        printf("位序非法，合法范围：1≤i≤%d\n", L->length + 1);
+        return -1;
+    }
+    if (L->length >= MAXSIZE) {
+        printf("顺序表已满，无法插入！\n");
+        return -1;
+    }
+    // 从后往前移动元素，腾出第i个位置（下标i-1）
+    for (int j = L->length; j >= i; j--) {
+        L->data[j] = L->data[j - 1];
+    }
+    L->data[i - 1] = x;  // 插入元素
+    L->length++;         // 表长+1
+    return 0;
+}
+
+// 7.删除第i个元素
+int DeleteElem(SeqList *L, int i) {
+    // 校验位序合法性和表是否空
+    if (i < 1 || i > L->length) {
+        printf("位序非法，合法范围：1≤i≤%d\n", L->length);
+        return -1;
+    }
+    if (L->length == 0) {
+        printf("顺序表为空，无法删除！\n");
+        return -1;
+    }
+    // 从i位置往后移动元素，覆盖删除位置
+    for (int j = i; j < L->length; j++) {
+        L->data[j - 1] = L->data[j];
+    }
+    L->length--;  // 表长-1
+    return 0;
+}
+
+// 8.输出顺序表所有元素
+void PrintSeqList(SeqList L) {
+    if (L.length == 0) {
+        printf("顺序表为空！\n");
+        return;
+    }
+    for (int i = 0; i < L.length; i++) {
+        printf("%d ", L.data[i]);
+    }
+    printf("\n");
+}
+
+// 9.将奇数移到偶数前面（双指针法，时间O(n)，空间O(1)）
+void OddEvenMove(SeqList *L) {
+    if (L->length <= 1) {
+        return;  // 空表或单个元素，无需处理
+    }
+    int l = 0;  // 左指针，从表头开始
+    int r = L->length - 1;  // 右指针，从表尾开始
+    while (l < r) {
+        // 左指针找偶数（跳过奇数）
+        while (l < r && L->data[l] % 2 != 0) {
+            l++;
+        }
+        // 右指针找奇数（跳过偶数）
+        while (l < r && L->data[r] % 2 == 0) {
+            r--;
+        }
+        // 交换左右指针指向的元素
+        int temp = L->data[l];
+        L->data[l] = L->data[r];
+        L->data[r] = temp;
+        l++;
+        r--;
+    }
+}
+
+// 10.合并两个非递减顺序表L1、L2到L，保持非递减，不使用Insert函数
+int MergeSeqList(SeqList L1, SeqList L2, SeqList *L) {
+    int m = L1.length, n = L2.length;
+    // 校验合并后表长是否超过最大容量
+    if (m + n > MAXSIZE) {
+        printf("合并后表长超过最大容量%d，无法合并！\n", MAXSIZE);
+        return -1;
+    }
+    int i = m - 1, j = n - 1, k = m + n - 1;  // 三指针从后往前
+    // 比较L1和L2的元素，将较大值放入L的末尾
+    while (i >= 0 && j >= 0) {
+        if (L1.data[i] >= L2.data[j]) {
+            L->data[k--] = L1.data[i--];
+        } else {
+            L->data[k--] = L2.data[j--];
+        }
+    }
+    // 复制L1剩余的元素
+    while (i >= 0) {
+        L->data[k--] = L1.data[i--];
+    }
+    // 复制L2剩余的元素
+    while (j >= 0) {
+        L->data[k--] = L2.data[j--];
+    }
+    L->length = m + n;  // 设置合并后表长
+    return 0;
+}
