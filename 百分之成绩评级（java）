@@ -1,0 +1,20 @@
+import java.util.Scanner;
+
+public class Score {
+    public static void main(String[] args) {
+        Scanner scanner =new Scanner(System.in);
+        System.out.println("请输入你的百分制成绩：");
+        int score = scanner.nextInt();
+        int n = score/10;
+        if (score>=0&&score<=100){
+            switch (n){
+                case 10,9:
+                    System.out.println("A");
+                    break;
+                case 8:
+                    System.out.println("B");
+                    break;
+            }
+        }else System.out.println("请输入正确的成绩！");
+    }
+}
