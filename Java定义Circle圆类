@@ -1,0 +1,50 @@
+public class Circle {
+    private double centreX;
+    private double centreY;
+    private double radius;
+
+    public Circle(double centreX,double centreY,double radius){
+        this.centreX=centreX;
+        this.centreY=centreY;
+        this.radius=radius;
+    }
+
+    public Circle(double radius){
+        this(0,0,radius);
+    }
+
+    public Circle(){
+        this(1.0);
+    }
+
+    public double getRadius(){
+        return radius;
+    }
+
+    public void setRadius(double radius){
+        this.radius=radius;
+    }
+
+    public String toString(){
+        return "这是一个圆心在("+centreX+","+centreY+"),半径为"+radius+"的圆。";
+    }
+
+    public double getAreas(){
+        return Math.PI*radius*radius;
+    }
+
+    public double getPerimeter(){
+        return 2*Math.PI*radius;
+    }
+}
+
+
+public class Test {
+    public static void main(String[] args) {
+        Circle circle1=new Circle();
+        System.out.println(circle1.toString());
+        circle1.setRadius(5.0);
+        System.out.println("圆的面积为："+circle1.getAreas());
+        System.out.println("圆的周长为："+circle1.getPerimeter());
+    }
+}
